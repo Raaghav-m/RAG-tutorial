@@ -1,7 +1,11 @@
 from pathlib import Path
 import sys
 
-from rag_pipeline import chunk_text, embed_chunks, save_embeddings
+from chunk import chunk_document
+from embed import embed_chunks
+from ingest import ingest_file
+from index import build_index
+from validate import validate_document
 
 
 MODEL_NAME = "sentence-transformers/all-MiniLM-L6-v2"
@@ -10,13 +14,14 @@ MODEL_NAME = "sentence-transformers/all-MiniLM-L6-v2"
 def main() -> None:
     source_path = Path(sys.argv[1]) if len(sys.argv) > 1 else Path("../sample.txt")
     output_dir = Path("data")
-    text = source_path.read_text(encoding="utf-8")
-    chunks = chunk_text(text, source=source_path.name)
+    document = ingest_file(source_path)
+    validate_document(document)
+    chunks = chunk_document(document)
     embeddings = embed_chunks(chunks, model_name=MODEL_NAME)
-    save_embeddings(output_dir, chunks, embeddings, MODEL_NAME)
+    build_index(output_dir, chunks, embeddings, MODEL_NAME)
     print(f"Created {len(chunks)} chunks")
     print(f"Embedding shape: {embeddings.shape}")
-    print(f"Saved artifacts to {output_dir}/")
+    print(f"Saved FAISS index to {output_dir / 'index.faiss'}")
 
 
 if __name__ == "__main__":

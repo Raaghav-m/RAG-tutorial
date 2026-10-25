@@ -1,25 +1,31 @@
-import json
 from pathlib import Path
 import sys
 
-import numpy as np
-
-from rag_pipeline import Chunk, search_chunks
+from cite import cite_results, format_citation
+from generate import generate_answer
+from index import load_index
+from retrieve import search_index
+from rewrite import rewrite_query
 
 
 def main() -> None:
-    query = " ".join(sys.argv[1:]).strip()
-    if not query:
+    raw_query = " ".join(sys.argv[1:])
+    if not raw_query.strip():
         raise SystemExit("Usage: python search.py <question>")
 
-    data_dir = Path("data")
-    embeddings = np.load(data_dir / "embeddings.npy")
-    metadata = json.loads((data_dir / "metadata.json").read_text(encoding="utf-8"))
-    chunks = [Chunk(**chunk) for chunk in metadata["chunks"]]
-    results = search_chunks(query, embeddings, chunks, metadata["model"])
+    query = rewrite_query(raw_query)
+    index, chunks, model_name = load_index(Path("data"))
+    results = search_index(query.rewritten, index, chunks, model_name)
+    generated = generate_answer(query.original, results)
+    citations = cite_results(generated.context)
 
-    for rank, result in enumerate(results, start=1):
-        print(f"{rank}. score={result.score:.4f} source={result.chunk.source}")
+    print(generated.answer)
+    print("\nCitations:")
+    for rank, citation in enumerate(citations, start=1):
+        print(format_citation(rank, citation))
+
+    print("\nRetrieved context:")
+    for result in generated.context:
         print(result.chunk.text)
         print()
 
