@@ -1,0 +1,12 @@
+.venv/
+__pycache__/
+*.py[cod]
+.pytest_cache/
+
+# Generated embeddings and metadata
+local-rag-app/data/
+
+# Local model and environment files
+.env
+.cache/
+hf_cache/
