@@ -2,11 +2,28 @@
 __pycache__/
 *.py[cod]
 .pytest_cache/
+.mypy_cache/
+.ruff_cache/
+
+# Python build and test output
+build/
+dist/
+*.egg-info/
+.coverage
+htmlcov/
+
+# Local logs and OS metadata
+*.log
+.DS_Store
 
 # Generated embeddings and metadata
 local-rag-app/data/
+local-rag-app/documents/
 
 # Local model and environment files
 .env
 .cache/
 hf_cache/
+
+# Local editor settings
+.vscode/
